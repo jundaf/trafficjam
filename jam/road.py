@@ -1,5 +1,6 @@
 import logging
 from collections import defaultdict
+from functools import reduce
 
 from .section import *
 
@@ -33,9 +34,12 @@ class Road():
 	def parse_sections(self, sections):
 		while sections:
 			line1 = sorted_sections(sections)
-			if len(line1) > 1:
+			# logging.debug("%d, %d", len(line1), len(sections))
+			if line1:
 				self.lines.append(line1)
 			else:
+				# for sect in sections:
+				# 	logging.debug(sect.points)
 				logging.error("%s sort failed: %s", self.name, len(sections))
 				break
 		for num,line in enumerate(self.lines):
@@ -68,11 +72,8 @@ class Road():
 		return self.middle
 
 	def judge_horiz(self):
-		s0 = self.lines[0][0]
-		s1 = self.lines[0][-1]
-		p0 = s0.points[0]
-		p1 = s1.points[-1]
-		return (p1.x - p0.x) > (p1.y - p0.y)
+		tl, br = self.tl_point, self.br_point
+		return (br.x - tl.x) > (br.y - tl.y)
 
 	def set_name_pos(self):
 		self.calc_middle()
@@ -86,8 +87,9 @@ class Road():
 	def display_lines(self):
 		dlines = []
 		for ln in self.lines:
-			points = [s.points[0] for s in ln]
-			points.append(ln[-1].points[-1])
+			points = reduce(lambda x,y: x + y[1:], [s.points for s in ln])
+			# points = [s.points[0] for s in ln]
+			# points.append(ln[-1].points[-1])
 			dlines.append(points)
 		return dlines
 

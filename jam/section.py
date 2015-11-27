@@ -18,7 +18,7 @@ def sorted_sections(sections):
 	if not sections:
 		return []
 	elif len(sections) == 1:
-		return sections
+		return [sections.pop(0)]
 	sorted_sect = []
 	next_ = find_next(None, sections)
 	while next_:
@@ -66,7 +66,7 @@ def convert_point(point, mapinfo):
 	max_ = max(mapinfo.width, mapinfo.height)
 	x = (x * mapinfo.pixel_size // max_)
 	y = (y * mapinfo.pixel_size // max_)
-	return Point(x, y)
+	return Point(x, mapinfo.pixel_size - y)
 
 
 class RoadSection():
