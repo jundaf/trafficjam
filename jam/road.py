@@ -44,7 +44,7 @@ class Road():
 				break
 		for num,line in enumerate(self.lines):
 			# for sect in line:
-			# 	logging.debug(sect.points)
+			# 	logging.debug("%s %s", sect.id, sect.points)
 			logging.debug("%s line %d: %d", self.name, num, len(line))
 
 	def top_left(self):
@@ -87,7 +87,7 @@ class Road():
 	def display_lines(self):
 		dlines = []
 		for ln in self.lines:
-			points = reduce(lambda x,y: x + y[1:], [s.points for s in ln])
+			points = reduce(lambda x,y: x + y[1:], [s.points_px for s in ln])
 			# points = [s.points[0] for s in ln]
 			# points.append(ln[-1].points[-1])
 			dlines.append(points)
@@ -104,8 +104,8 @@ class Road():
 		return bottom_right(points)
 
 	@staticmethod
-	def parse_roads(roads_sections):
+	def make_roads(grouped_sections):
 		roads = {}
-		for name in roads_sections:
-			roads[name] = Road(name, roads_sections[name])
+		for name in grouped_sections:
+			roads[name] = Road(name, grouped_sections[name])
 		return roads

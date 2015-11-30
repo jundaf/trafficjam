@@ -1,4 +1,5 @@
 import logging
+import math
 from collections import defaultdict, namedtuple
 from functools import reduce
 
@@ -69,6 +70,18 @@ def convert_point(point, mapinfo):
 	return Point(x, mapinfo.pixel_size - y)
 
 
+def Lonlat2Pixel(ll, zoom=16):
+	longitude, latitude = ll[0], ll[1]
+	_Num157 = 1.5707963267948966
+	_Num57 = 57.295779513082323
+	fd = 40075016.685578488 / ((1 << zoom) * 256)
+	ia = (longitude / _Num57) * 6378137
+	hT = - math.log(math.tan((_Num157 - latitude / _Num57) / 2)) * 6378137
+	xPixel = round((ia + 20037508.342789244) / fd)
+	yPixel = round((20037508.342789244 - hT) / fd)
+	return Point(xPixel, yPixel)
+
+
 class RoadSection():
 
 	def __init__(self, sect):
@@ -76,12 +89,15 @@ class RoadSection():
 		self.name = sect.get('name')
 		self.grade = sect.get('grade')
 		self.direction = int(sect.get('direction'))
-		#logging.debug(sect.get('points'))
 		self.points = [Point(float(xy[0]), float(xy[1])) for xy in sect.get('points')]
 
 	def convert_points(self, mapinfo):
 		self.points = [convert_point(p, mapinfo) for p in self.points]
 		#logging.debug(self.points)
+
+	def lonlat2pixel(self, top_left, height):
+		tmp = [Lonlat2Pixel(p) for p in self.points]
+		self.points_px = [Point(p.x - top_left.x, height - abs(p.y - top_left.y)) for p in tmp]
 
 	@staticmethod
 	def top_left(sections):
@@ -94,11 +110,13 @@ class RoadSection():
 		return bottom_right(points)
 
 	@staticmethod
-	def make_sections(road_data):
+	def grouped_sections(road_data):
+		all_sections = []
 		road_sections = defaultdict(list)
 		for id in road_data:
 			sect = RoadSection(road_data[id])
+			all_sections.append(sect)
 			road_sections[sect.name].append(sect)
 		for name in road_sections:
 			logging.debug("%s has %d sections", name, len(road_sections[name]))
-		return road_sections
+		return all_sections, road_sections

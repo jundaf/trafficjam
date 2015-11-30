@@ -6,7 +6,7 @@ class RoadDataLoader():
 		self.data = {}
 
 	@property
-	def road_data(self):
+	def road_sections(self):
 		return self.data
 
 	def load_file(self, filename):

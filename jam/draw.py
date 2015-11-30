@@ -3,9 +3,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 class DrawRoads():
 
-	def __init__(self, roads, mapsize):
+	def __init__(self, roads, wh):
 		self.roads = roads
-		self.im = Image.new('RGB', (mapsize, mapsize))
+		self.im = Image.new('RGB', (wh[0], wh[1]))
 		self.draw = ImageDraw.Draw(self.im)
 
 	def draw_roads(self):
@@ -25,5 +25,5 @@ class DrawRoads():
 
 	def draw_and_save(self, filename):
 		self.draw_roads()
-		self.draw_names()
+		#self.draw_names()
 		self.im.save(filename, "PNG")
