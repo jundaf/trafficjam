@@ -77,7 +77,7 @@ class RoadSection():
 	def __init__(self, sect):
 		self.id = sect.get('id')
 		self.name = sect.get('name')
-		self.grade = sect.get('grade')
+		self.grade = int(sect.get('grade')[0:2], 16)
 		self.direction = int(sect.get('direction'))
 		self.points = [Point(float(xy[0]), float(xy[1])) for xy in sect.get('points')]
 

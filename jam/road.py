@@ -4,6 +4,7 @@ from functools import reduce
 
 from .section import *
 
+CHAR_SIZE = 24
 
 class CharPosition(object):
 
@@ -17,21 +18,21 @@ class CharPosition(object):
 		mid = self.total // 2 + 1
 		x, y = middle.x, middle.y
 		if horiz:
-			x += (self.index - mid) * 24
+			x += (self.index - mid) * CHAR_SIZE
 			y += 10
 		else:
 			x += 10
-			y += (self.index - mid) * 24
+			y += (self.index - mid) * CHAR_SIZE
 		self.pos = (x, y)
 
 	def set_pos_head(self, head, horiz=True):
 		x, y = head.x, head.y
 		if horiz:
-			x += self.index * 24 + 50
+			x += (self.index + 2) * CHAR_SIZE
 			y += 10
 		else:
-			x += 10
-			y += self.index * 24 + 50
+			x += 15
+			y += (self.index + 2) * CHAR_SIZE
 		self.pos = (x, y)
 
 
@@ -44,6 +45,15 @@ class Road():
 		self.parse_sections(sections)
 		self._corners = None
 		self._horizontal = None
+		grade = self.lines[0][0].grade
+		if grade <= 0x04:
+			self._grade = 1
+		else:
+			self._grade = 2
+
+	@property
+	def grade(self):
+		return self._grade
 
 	def parse_sections(self, sections):
 		while sections:

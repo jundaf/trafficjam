@@ -12,8 +12,12 @@ class DrawRoads():
 	def draw_roads(self):
 		logging.debug("drawing roads")
 		for name in self.roads:
+			if self.roads[name].grade == 1:
+				line_width = 10
+			else:
+				line_width = 5
 			for line in self.roads[name].display_lines():
-				self.draw.line(line, fill=128, width=5)
+				self.draw.line(line, fill=128, width=line_width)
 
 	def draw_names(self):
 		logging.debug("drawing road names")
