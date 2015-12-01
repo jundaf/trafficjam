@@ -24,6 +24,16 @@ class CharPosition(object):
 			y += (self.index - mid) * 24
 		self.pos = (x, y)
 
+	def set_pos_head(self, head, horiz=True):
+		x, y = head.x, head.y
+		if horiz:
+			x += self.index * 24 + 50
+			y += 10
+		else:
+			x += 10
+			y += self.index * 24 + 50
+		self.pos = (x, y)
+
 
 class Road():
 
@@ -65,6 +75,8 @@ class Road():
 	def middle_point(self, horiz):
 		longest = max(self.lines, key=lambda l: len(l))
 		lbr = RoadSection.bottom_right(longest)
+		# middle_sect = longest[len(longest) // 2 + 1]
+		# middle = middle_sect.points[0]
 		tl_point, br_point = self.corners
 		middle = Point(x=(tl_point.x + br_point.x) // 2,
 					   y=(tl_point.y + br_point.y) // 2)
@@ -87,12 +99,22 @@ class Road():
 			self._horizontal = self.judge_horiz()
 		return self._horizontal
 
+	def head_point(self):
+		if self.horizontal:
+			self.lines = sorted(self.lines, key=lambda ln: ln[0].points[0].x)
+			return self.lines[0][0].points[0]
+		else:
+			self.lines = sorted(self.lines, key=lambda ln: ln[0].points[0].y)
+			return self.lines[0][0].points[0]
+
 	def set_name_pos(self):
-		middle = self.middle_point(self.horizontal)
+		#middle = self.middle_point(self.horizontal)
+		head = self.head_point()
 		logging.debug("%s horiz=%s", self.name, self.horizontal)
 		for i, c in enumerate(self.name):
 			pos = CharPosition(i, c, len(self.name))
-			pos.set_pos(middle, self.horizontal)
+			#pos.set_pos(middle, self.horizontal)
+			pos.set_pos_head(head, self.horizontal)
 			self.chars_pos.append(pos)
 
 	def display_lines(self):
