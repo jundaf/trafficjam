@@ -12,12 +12,12 @@ class RoadMap(object):
 		logging.debug("width={}, height={}".format(self.width, self.height))
 
 	def zoom_level():
-	    doc = "The zoom_level property."
-	    def fget(self):
-	        return self._zoom_level
-	    def fset(self, value):
-	        self._zoom_level = value
-	    def fdel(self):
-	        del self._zoom_level
-	    return locals()
+		doc = "The zoom_level property."
+		def fget(self):
+			return self._zoom_level
+		def fset(self, value):
+			self._zoom_level = value
+		def fdel(self):
+			del self._zoom_level
+		return locals()
 	zoom_level = property(**zoom_level())

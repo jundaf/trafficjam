@@ -54,7 +54,7 @@ def find_prev(current, sections):
 ####
 
 def convert_point(point, map_):
-	p = Lonlat2Pixel(point)
+	p = Lonlat2Pixel(point, map_.zoom_level)
 	x = p.x - map_.top_left.x
 	y = map_.height - abs(p.y - map_.top_left.y)
 	return Point(x, y)

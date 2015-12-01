@@ -7,19 +7,21 @@ from .section import *
 
 class CharPosition(object):
 
-	def __init__(self, char):
+	def __init__(self, index, char, total):
+		self.index = index
 		self.char = char
+		self.total = total
 		self.pos = (0,0)
 
-	def set_pos(self, index, total, middle, horiz=True):
-		mid = total // 2 + 1
+	def set_pos(self, middle, horiz=True):
+		mid = self.total // 2 + 1
 		x, y = middle.x, middle.y
 		if horiz:
-			x += (index - mid) * 24
+			x += (self.index - mid) * 24
 			y += 10
 		else:
 			x += 10
-			y += (index - mid) * 24
+			y += (self.index - mid) * 24
 		self.pos = (x, y)
 
 
@@ -30,6 +32,8 @@ class Road():
 		self.lines = []
 		self.chars_pos = []
 		self.parse_sections(sections)
+		self._corners = None
+		self._horizontal = None
 
 	def parse_sections(self, sections):
 		while sections:
@@ -52,35 +56,43 @@ class Road():
 		points = [RoadSection.bottom_right(line) for line in self.lines]
 		return bottom_right(points)
 
-	# def convert_points(self, mapinfo):
-	# 	for ln in self.lines:
-	# 		for s in ln:
-	# 			s.convert_points(mapinfo)
-	# 	self.tl_point = convert_point(self.tl_point, mapinfo)
-	# 	self.br_point = convert_point(self.br_point, mapinfo)
+	@property
+	def corners(self):
+		if not self._corners:
+			self._corners = (self.top_left(), self.bottom_right())
+		return self._corners
 
-	def calc_middle(self):
-		tl_point = self.top_left()
-		br_point = self.bottom_right()
-		self.middle = Point(x=(tl_point.x + br_point.x) // 2,
-							y=(tl_point.y + br_point.y) // 2)
-		return self.middle
+	def middle_point(self, horiz):
+		longest = max(self.lines, key=lambda l: len(l))
+		lbr = RoadSection.bottom_right(longest)
+		tl_point, br_point = self.corners
+		middle = Point(x=(tl_point.x + br_point.x) // 2,
+					   y=(tl_point.y + br_point.y) // 2)
+		if horiz:
+			middle = Point(middle.x, lbr.y)
+		else:
+			middle = Point(lbr.x, middle.y)
+		return middle
 
 	def judge_horiz(self):
-		tl = self.top_left()
-		br = self.bottom_right()
-		width = br.x - tl.x
-		height = br.y - tl.y
+		tl_point, br_point = self.corners
+		width = br_point.x - tl_point.x
+		height = br_point.y - tl_point.y
 		logging.debug("%s is %s", self.name, ('horizontal' if width > height else 'vertical'))
 		return width > height
 
+	@property
+	def horizontal(self):
+		if self._horizontal is None:
+			self._horizontal = self.judge_horiz()
+		return self._horizontal
+
 	def set_name_pos(self):
-		self.calc_middle()
-		horiz = self.judge_horiz()
-		logging.debug("%s horiz=%s", self.name, horiz)
+		middle = self.middle_point(self.horizontal)
+		logging.debug("%s horiz=%s", self.name, self.horizontal)
 		for i, c in enumerate(self.name):
-			pos = CharPosition(c)
-			pos.set_pos(i, len(self.name), self.middle, horiz)
+			pos = CharPosition(i, c, len(self.name))
+			pos.set_pos(middle, self.horizontal)
 			self.chars_pos.append(pos)
 
 	def display_lines(self):
@@ -89,16 +101,6 @@ class Road():
 			points = reduce(lambda x,y: x + y[1:], [s.points for s in ln])
 			dlines.append(points)
 		return dlines
-
-	# @staticmethod
-	# def top_left_corner(roads):
-	# 	points = [roads[name].top_left() for name in roads]
-	# 	return top_left(points)
-
-	# @staticmethod
-	# def bottom_right_corner(roads):
-	# 	points = [roads[name].bottom_right() for name in roads]
-	# 	return bottom_right(points)
 
 	@staticmethod
 	def make_roads(grouped_sections):
