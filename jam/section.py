@@ -15,6 +15,8 @@ def bottom_right(points):
 	bottom = max([p.y for p in points])
 	return Point(right, bottom)
 
+####
+
 def sorted_sections(sections):
 	if not sections:
 		return []
@@ -49,29 +51,16 @@ def find_prev(current, sections):
 			return sections.pop(i)
 	return None
 
+####
 
-class MapInfo():
+def convert_point(point, map_):
+	p = Lonlat2Pixel(point)
+	x = p.x - map_.top_left.x
+	y = map_.height - abs(p.y - map_.top_left.y)
+	return Point(x, y)
 
-	def __init__(self, tl, br, ps):
-		self.top_left = tl
-		self.bottom_right = br
-		self.pixel_size = ps
-		self.width = int(round((br.x - tl.x) * 10 ** 6))
-		self.height = int(round((br.y - tl.y) * 10 ** 6))
-		logging.debug("%d, %d", self.width, self.height)
-
-
-def convert_point(point, mapinfo):
-	x = int(round((point.x - mapinfo.top_left.x) * 10 ** 6))
-	y = int(round((point.y - mapinfo.top_left.y) * 10 ** 6))
-	max_ = max(mapinfo.width, mapinfo.height)
-	x = (x * mapinfo.pixel_size // max_)
-	y = (y * mapinfo.pixel_size // max_)
-	return Point(x, mapinfo.pixel_size - y)
-
-
-def Lonlat2Pixel(ll, zoom=16):
-	longitude, latitude = ll[0], ll[1]
+def Lonlat2Pixel(lonlat, zoom=16):
+	longitude, latitude = lonlat[0], lonlat[1]
 	_Num157 = 1.5707963267948966
 	_Num57 = 57.295779513082323
 	fd = 40075016.685578488 / ((1 << zoom) * 256)
@@ -81,6 +70,7 @@ def Lonlat2Pixel(ll, zoom=16):
 	yPixel = round((20037508.342789244 - hT) / fd)
 	return Point(xPixel, yPixel)
 
+####
 
 class RoadSection():
 
@@ -94,10 +84,6 @@ class RoadSection():
 	def convert_points(self, mapinfo):
 		self.points = [convert_point(p, mapinfo) for p in self.points]
 		#logging.debug(self.points)
-
-	def lonlat2pixel(self, top_left, height):
-		tmp = [Lonlat2Pixel(p) for p in self.points]
-		self.points_px = [Point(p.x - top_left.x, height - abs(p.y - top_left.y)) for p in tmp]
 
 	@staticmethod
 	def top_left(sections):

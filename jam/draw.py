@@ -3,9 +3,10 @@ from PIL import Image, ImageDraw, ImageFont
 
 class DrawRoads():
 
-	def __init__(self, roads, wh):
+	def __init__(self, roads, map_):
 		self.roads = roads
-		self.im = Image.new('RGB', (wh[0], wh[1]))
+		self.map_ = map_
+		self.im = Image.new('RGB', (map_.width, map_.height))
 		self.draw = ImageDraw.Draw(self.im)
 
 	def draw_roads(self):
@@ -17,13 +18,13 @@ class DrawRoads():
 	def draw_names(self):
 		logging.debug("drawing road names")
 		simsun_font = ImageFont.truetype("simsun.ttc", 24, encoding="unic")
-		self.draw.text((0,0), "图吧", font=simsun_font)
 		for name in self.roads:
+			self.roads[name].set_name_pos()
 			for cp in self.roads[name].chars_pos:
 				#logging.debug("%s, %s", cp.pos, cp.char)
 				self.draw.text(cp.pos, cp.char, font=simsun_font)
 
 	def draw_and_save(self, filename):
 		self.draw_roads()
-		#self.draw_names()
+		self.draw_names()
 		self.im.save(filename, "PNG")

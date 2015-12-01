@@ -34,12 +34,9 @@ class Road():
 	def parse_sections(self, sections):
 		while sections:
 			line1 = sorted_sections(sections)
-			# logging.debug("%d, %d", len(line1), len(sections))
 			if line1:
 				self.lines.append(line1)
 			else:
-				# for sect in sections:
-				# 	logging.debug(sect.points)
 				logging.error("%s sort failed: %s", self.name, len(sections))
 				break
 		for num,line in enumerate(self.lines):
@@ -49,31 +46,33 @@ class Road():
 
 	def top_left(self):
 		points = [RoadSection.top_left(line) for line in self.lines]
-		#logging.debug("%s: %s", self.name, points)
-		self.tl_point = top_left(points)
-		return self.tl_point
+		return top_left(points)
 
 	def bottom_right(self):
 		points = [RoadSection.bottom_right(line) for line in self.lines]
-		#logging.debug("%s: %s", self.name, points)
-		self.br_point = bottom_right(points)
-		return self.br_point
+		return bottom_right(points)
 
-	def convert_points(self, mapinfo):
-		for ln in self.lines:
-			for s in ln:
-				s.convert_points(mapinfo)
-		self.tl_point = convert_point(self.tl_point, mapinfo)
-		self.br_point = convert_point(self.br_point, mapinfo)
+	# def convert_points(self, mapinfo):
+	# 	for ln in self.lines:
+	# 		for s in ln:
+	# 			s.convert_points(mapinfo)
+	# 	self.tl_point = convert_point(self.tl_point, mapinfo)
+	# 	self.br_point = convert_point(self.br_point, mapinfo)
 
 	def calc_middle(self):
-		self.middle = Point(x=(self.tl_point.x + self.br_point.x) // 2,
-							y=(self.tl_point.y + self.br_point.y) // 2)
+		tl_point = self.top_left()
+		br_point = self.bottom_right()
+		self.middle = Point(x=(tl_point.x + br_point.x) // 2,
+							y=(tl_point.y + br_point.y) // 2)
 		return self.middle
 
 	def judge_horiz(self):
-		tl, br = self.tl_point, self.br_point
-		return (br.x - tl.x) > (br.y - tl.y)
+		tl = self.top_left()
+		br = self.bottom_right()
+		width = br.x - tl.x
+		height = br.y - tl.y
+		logging.debug("%s is %s", self.name, ('horizontal' if width > height else 'vertical'))
+		return width > height
 
 	def set_name_pos(self):
 		self.calc_middle()
@@ -87,21 +86,19 @@ class Road():
 	def display_lines(self):
 		dlines = []
 		for ln in self.lines:
-			points = reduce(lambda x,y: x + y[1:], [s.points_px for s in ln])
-			# points = [s.points[0] for s in ln]
-			# points.append(ln[-1].points[-1])
+			points = reduce(lambda x,y: x + y[1:], [s.points for s in ln])
 			dlines.append(points)
 		return dlines
 
-	@staticmethod
-	def top_left_corner(roads):
-		points = [roads[name].top_left() for name in roads]
-		return top_left(points)
+	# @staticmethod
+	# def top_left_corner(roads):
+	# 	points = [roads[name].top_left() for name in roads]
+	# 	return top_left(points)
 
-	@staticmethod
-	def bottom_right_corner(roads):
-		points = [roads[name].bottom_right() for name in roads]
-		return bottom_right(points)
+	# @staticmethod
+	# def bottom_right_corner(roads):
+	# 	points = [roads[name].bottom_right() for name in roads]
+	# 	return bottom_right(points)
 
 	@staticmethod
 	def make_roads(grouped_sections):
