@@ -48,8 +48,10 @@ class Road():
 		grade = self.lines[0][0].grade
 		if grade <= 0x04:
 			self._grade = 1
-		else:
+		elif grade <= 0x06:
 			self._grade = 2
+		else:
+			self._grade = 3
 
 	@property
 	def grade(self):
@@ -84,10 +86,10 @@ class Road():
 
 	def middle_point(self, horiz):
 		longest = max(self.lines, key=lambda l: len(l))
+		ltl = RoadSection.top_left(longest)
 		lbr = RoadSection.bottom_right(longest)
-		# middle_sect = longest[len(longest) // 2 + 1]
-		# middle = middle_sect.points[0]
-		tl_point, br_point = self.corners
+		#tl_point, br_point = self.corners
+		tl_point, br_point = ltl, lbr
 		middle = Point(x=(tl_point.x + br_point.x) // 2,
 					   y=(tl_point.y + br_point.y) // 2)
 		if horiz:
@@ -118,13 +120,13 @@ class Road():
 			return self.lines[0][0].points[0]
 
 	def set_name_pos(self):
-		#middle = self.middle_point(self.horizontal)
-		head = self.head_point()
+		middle = self.middle_point(self.horizontal)
+		#head = self.head_point()
 		logging.debug("%s horiz=%s", self.name, self.horizontal)
 		for i, c in enumerate(self.name):
 			pos = CharPosition(i, c, len(self.name))
-			#pos.set_pos(middle, self.horizontal)
-			pos.set_pos_head(head, self.horizontal)
+			pos.set_pos(middle, self.horizontal)
+			#pos.set_pos_head(head, self.horizontal)
 			self.chars_pos.append(pos)
 
 	def display_lines(self):
