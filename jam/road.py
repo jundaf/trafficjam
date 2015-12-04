@@ -33,7 +33,6 @@ class Road():
 		self.name = name
 		self._set_grade(sections[0])
 		self.lines = []
-		self.chars_pos = []
 		self._parse_sections(sections)
 		self._corners = None
 		self._horizontal = None
@@ -106,6 +105,9 @@ class Road():
 			char.set_pos(middle, self.horizontal)
 			chars.append(char)
 		return chars
+
+	def _shift_lines(self):
+		pass
 
 	def display_lines(self):
 		dlines = []
