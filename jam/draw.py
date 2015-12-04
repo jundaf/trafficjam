@@ -7,10 +7,10 @@ _COLORS = {1: (255, 0, 0), 2: (255, 255, 0), 3: (128, 255, 0),
 
 class DrawRoads():
 
-	def __init__(self, roads, map_):
+	def __init__(self, roads, mapinfo):
 		self.roads = roads
-		self.map_ = map_
-		self.im = Image.new('RGB', (map_.width, map_.height))
+		self.mapinfo = mapinfo
+		self.im = Image.new('RGB', (mapinfo.width, mapinfo.height))
 		self.draw = ImageDraw.Draw(self.im)
 
 	def draw_roads(self):

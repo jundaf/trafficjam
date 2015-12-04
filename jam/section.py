@@ -53,12 +53,6 @@ def find_prev(current, sections):
 
 ####
 
-def convert_point(point, map_):
-	p = Lonlat2Pixel(point, map_.zoom_level)
-	x = p.x - map_.top_left.x
-	y = map_.height - abs(p.y - map_.top_left.y)
-	return Point(x, y)
-
 def Lonlat2Pixel(lonlat, zoom=16):
 	longitude, latitude = lonlat[0], lonlat[1]
 	_Num157 = 1.5707963267948966
@@ -81,8 +75,16 @@ class RoadSection():
 		self.direction = int(sect.get('direction'))
 		self.points = [Point(float(xy[0]), float(xy[1])) for xy in sect.get('points')]
 
-	def convert_points(self, mapinfo):
-		self.points = [convert_point(p, mapinfo) for p in self.points]
+	def convert_points(self, zoom):
+		self.points = [Lonlat2Pixel(p, zoom) for p in self.points]
+		#logging.debug(self.points)
+
+	def points2pixels(self, mapinfo):
+		def to_pixels(point):
+			x = point.x - mapinfo.top_left.x
+			y = point.y - mapinfo.top_left.y
+			return Point(x, y)
+		self.points = [to_pixels(p) for p in self.points]
 		#logging.debug(self.points)
 
 	@staticmethod
@@ -106,3 +108,34 @@ class RoadSection():
 		for name in road_sections:
 			logging.debug("%s has %d sections", name, len(road_sections[name]))
 		return all_sections, road_sections
+
+####
+
+class RoadDataLoader():
+
+	def __init__(self):
+		self.data = {}
+
+	def road_sections(self):
+		all_sections = []
+		grouped_sections = defaultdict(list)
+		for id in self.data:
+			sect = RoadSection(self.data[id])
+			all_sections.append(sect)
+			grouped_sections[sect.name].append(sect)
+		for name in grouped_sections:
+			logging.debug("%s has %d sections", name, len(grouped_sections[name]))
+		return all_sections, grouped_sections
+
+	def load_file(self, filename):
+		with open(filename, encoding='utf-8') as f:
+			for line in f:
+				self.parse_line(line.strip())
+		logging.debug("loaded %d records", len(self.data))
+
+	def parse_line(self, line):
+		entry = {}
+		part1, part2 = line.split('&')
+		entry['id'], entry['name'], entry['grade'], entry['direction'] = part1.split(',')
+		entry['points'] = [tuple(xy.split(',')) for xy in part2.split(';') if xy]
+		self.data[entry.get('id')] = entry

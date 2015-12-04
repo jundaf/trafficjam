@@ -4,14 +4,31 @@ import os.path
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-from jam.loader import RoadDataLoader
-from jam.section import RoadSection
+#from jam.loader import RoadDataLoader
+from jam.section import RoadSection, RoadDataLoader
 from jam.road import Road
 from jam.draw import DrawRoads
-from jam.map import RoadMap
+#from jam.map import RoadMap
 
 ERROR = 1
 ERROR_CMDLINE = 2
+
+
+class MapGeometry(object):
+
+	def __init__(self, top_left, bottom_right):
+		self.top_left = top_left
+		self.bottom_right = bottom_right
+		logging.debug("Top left    : %s", top_left)
+		logging.debug("Bottom right: %s", bottom_right)
+
+	@property
+	def width(self):
+		return self.bottom_right.x - self.top_left.x
+
+	@property
+	def height(self):
+		return abs(self.bottom_right.y - self.top_left.y)
 
 
 def main():
@@ -28,21 +45,20 @@ def main():
 	data_loader = RoadDataLoader()
 	data_loader.load_file(sys.argv[1])
 
-	all_sections, grouped_sections = RoadSection.grouped_sections(data_loader.road_sections)
+	all_sections, grouped_sections = data_loader.road_sections()
 	roads = Road.make_roads(grouped_sections)
+	for sect in all_sections:
+		sect.convert_points(zoom=16)
 
 	top_left = RoadSection.top_left(all_sections)
 	bottom_right = RoadSection.bottom_right(all_sections)
-	logging.debug("Top left    : %s", top_left)
-	logging.debug("Bottom right: %s", bottom_right)
 
-	road_map = RoadMap(top_left, bottom_right, zoom=16)
+	mapinfo = MapGeometry(top_left, bottom_right)
+	logging.debug("width={}, height={}".format(mapinfo.width, mapinfo.height))
 	for sect in all_sections:
-		sect.convert_points(road_map)
+		sect.points2pixels(mapinfo)
 
-	# for name in roads:
-	# 	roads[name].judge_horiz()
-	dr = DrawRoads(roads, road_map)
+	dr = DrawRoads(roads, mapinfo)
 	dr.draw_and_save(sys.argv[2])
 
 
