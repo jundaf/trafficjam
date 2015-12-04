@@ -1,5 +1,6 @@
 import logging
 from PIL import Image, ImageDraw, ImageFont, ImageColor
+from .road import Road
 
 _COLORS = {1: (255, 0, 0), 2: (255, 255, 0), 3: (128, 255, 0),
 		   4: (0, 255, 64), 5: (0, 255, 255), 6: (0, 128, 192),
@@ -15,7 +16,7 @@ class DrawRoads():
 
 	def draw_roads(self):
 		logging.debug("drawing roads")
-		line_width = {1: 10, 2: 5, 3: 3}
+		line_width = {Road.HIGHWAY: 10, Road.NORMAL: 5, Road.OTHER: 3}
 		for name in self.roads:
 			W = line_width[self.roads[name].grade]
 			for i,line in enumerate(self.roads[name].display_lines()):
@@ -23,12 +24,10 @@ class DrawRoads():
 				self.draw.line(line, fill=F, width=W)
 
 	def draw_names(self): 
-		logging.debug("drawing road names")
+		logging.debug("drawing names")
 		simsun_font = ImageFont.truetype("simsun.ttc", 24, encoding="unic")
 		for name in self.roads:
-			self.roads[name].set_name_pos()
-			for cp in self.roads[name].chars_pos:
-				#logging.debug("%s, %s", cp.pos, cp.char)
+			for cp in self.roads[name].display_name():
 				self.draw.text(cp.pos, cp.char, font=simsun_font)
 
 	def draw_and_save(self, filename):

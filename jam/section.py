@@ -23,19 +23,19 @@ def sorted_sections(sections):
 	elif len(sections) == 1:
 		return [sections.pop(0)]
 	sorted_sect = []
-	next_ = find_next(None, sections)
+	next_ = _find_next(None, sections)
 	while next_:
 		sorted_sect.append(next_)
-		next_ = find_next(next_, sections)
+		next_ = _find_next(next_, sections)
 	if not sections:
 		return sorted_sect
-	prev = find_prev(sorted_sect[0], sections)
+	prev = _find_prev(sorted_sect[0], sections)
 	while prev:
 		sorted_sect.insert(0, prev)
-		prev = find_prev(prev, sections)
+		prev = _find_prev(prev, sections)
 	return sorted_sect
 
-def find_next(current, sections):
+def _find_next(current, sections):
 	if not current:
 		return sections.pop(0)
 	for i,s in enumerate(sections):
@@ -43,7 +43,7 @@ def find_next(current, sections):
 			return sections.pop(i)
 	return None
 
-def find_prev(current, sections):
+def _find_prev(current, sections):
 	if not current:
 		return sections.pop(0)
 	for i,s in enumerate(sections):
@@ -53,7 +53,7 @@ def find_prev(current, sections):
 
 ####
 
-def Lonlat2Pixel(lonlat, zoom=16):
+def _Lonlat2Pixel(lonlat, zoom=16):
 	longitude, latitude = lonlat[0], lonlat[1]
 	_Num157 = 1.5707963267948966
 	_Num57 = 57.295779513082323
@@ -76,7 +76,7 @@ class RoadSection():
 		self.points = [Point(float(xy[0]), float(xy[1])) for xy in sect.get('points')]
 
 	def convert_points(self, zoom):
-		self.points = [Lonlat2Pixel(p, zoom) for p in self.points]
+		self.points = [_Lonlat2Pixel(p, zoom) for p in self.points]
 		#logging.debug(self.points)
 
 	def points2pixels(self, mapinfo):
@@ -96,18 +96,6 @@ class RoadSection():
 	def bottom_right(sections):
 		points = reduce(lambda x,y: x+y, [s.points for s in sections])
 		return bottom_right(points)
-
-	@staticmethod
-	def grouped_sections(road_data):
-		all_sections = []
-		road_sections = defaultdict(list)
-		for id in road_data:
-			sect = RoadSection(road_data[id])
-			all_sections.append(sect)
-			road_sections[sect.name].append(sect)
-		for name in road_sections:
-			logging.debug("%s has %d sections", name, len(road_sections[name]))
-		return all_sections, road_sections
 
 ####
 

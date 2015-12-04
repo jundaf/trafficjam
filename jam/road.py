@@ -1,5 +1,4 @@
 import logging
-from collections import defaultdict
 from functools import reduce
 
 from .section import *
@@ -14,7 +13,7 @@ class CharPosition(object):
 		self.total = total
 		self.pos = (0,0)
 
-	def set_pos(self, middle, horiz=True):
+	def set_pos(self, middle, horiz):
 		mid = self.total // 2 + 1
 		x, y = middle.x, middle.y
 		if horiz:
@@ -25,39 +24,30 @@ class CharPosition(object):
 			y += (self.index - mid) * CHAR_SIZE
 		self.pos = (x, y)
 
-	def set_pos_head(self, head, horiz=True):
-		x, y = head.x, head.y
-		if horiz:
-			x += (self.index + 2) * CHAR_SIZE
-			y += 10
-		else:
-			x += 15
-			y += (self.index + 2) * CHAR_SIZE
-		self.pos = (x, y)
-
 
 class Road():
 
+	HIGHWAY, NORMAL, OTHER = 1, 2, 3
+
 	def __init__(self, name, sections):
 		self.name = name
+		self._set_grade(sections[0])
 		self.lines = []
 		self.chars_pos = []
-		self.parse_sections(sections)
+		self._parse_sections(sections)
 		self._corners = None
 		self._horizontal = None
-		grade = self.lines[0][0].grade
+
+	def _set_grade(self, section):
+		grade = section.grade
 		if grade <= 0x04:
-			self._grade = 1
+			self.grade = Road.HIGHWAY
 		elif grade <= 0x06:
-			self._grade = 2
+			self.grade = Road.NORMAL
 		else:
-			self._grade = 3
+			self.grade = Road.OTHER
 
-	@property
-	def grade(self):
-		return self._grade
-
-	def parse_sections(self, sections):
+	def _parse_sections(self, sections):
 		while sections:
 			line1 = sorted_sections(sections)
 			if line1:
@@ -84,21 +74,18 @@ class Road():
 			self._corners = (self.top_left(), self.bottom_right())
 		return self._corners
 
-	def middle_point(self, horiz):
+	def _middle_point(self, horiz):
 		longest = max(self.lines, key=lambda l: len(l))
-		ltl = RoadSection.top_left(longest)
-		lbr = RoadSection.bottom_right(longest)
-		#tl_point, br_point = self.corners
-		tl_point, br_point = ltl, lbr
+		tl_point = RoadSection.top_left(longest)
+		br_point = RoadSection.bottom_right(longest)
 		middle = Point(x=(tl_point.x + br_point.x) // 2,
 					   y=(tl_point.y + br_point.y) // 2)
 		if horiz:
-			middle = Point(middle.x, lbr.y)
+			return Point(middle.x, br_point.y)
 		else:
-			middle = Point(lbr.x, middle.y)
-		return middle
+			return Point(br_point.x, middle.y)
 
-	def judge_horiz(self):
+	def _judge_horiz(self):
 		tl_point, br_point = self.corners
 		width = br_point.x - tl_point.x
 		height = br_point.y - tl_point.y
@@ -108,26 +95,17 @@ class Road():
 	@property
 	def horizontal(self):
 		if self._horizontal is None:
-			self._horizontal = self.judge_horiz()
+			self._horizontal = self._judge_horiz()
 		return self._horizontal
 
-	def head_point(self):
-		if self.horizontal:
-			self.lines = sorted(self.lines, key=lambda ln: ln[0].points[0].x)
-			return self.lines[0][0].points[0]
-		else:
-			self.lines = sorted(self.lines, key=lambda ln: ln[0].points[0].y)
-			return self.lines[0][0].points[0]
-
-	def set_name_pos(self):
-		middle = self.middle_point(self.horizontal)
-		#head = self.head_point()
-		logging.debug("%s horiz=%s", self.name, self.horizontal)
+	def display_name(self):
+		chars = []
+		middle = self._middle_point(self.horizontal)
 		for i, c in enumerate(self.name):
-			pos = CharPosition(i, c, len(self.name))
-			pos.set_pos(middle, self.horizontal)
-			#pos.set_pos_head(head, self.horizontal)
-			self.chars_pos.append(pos)
+			char = CharPosition(i, c, len(self.name))
+			char.set_pos(middle, self.horizontal)
+			chars.append(char)
+		return chars
 
 	def display_lines(self):
 		dlines = []
