@@ -4,11 +4,10 @@ import os.path
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-#from jam.loader import RoadDataLoader
 from jam.section import RoadSection, RoadDataLoader
 from jam.road import Road
 from jam.draw import DrawRoads
-#from jam.map import RoadMap
+
 
 ERROR = 1
 ERROR_CMDLINE = 2

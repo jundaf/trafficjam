@@ -36,6 +36,7 @@ class Road():
 		self._parse_sections(sections)
 		self._corners = None
 		self._horizontal = None
+		self._name_line = []
 
 	def _set_grade(self, section):
 		grade = section.grade
@@ -75,8 +76,9 @@ class Road():
 
 	def _middle_point(self, horiz):
 		longest = max(self.lines, key=lambda l: len(l))
-		tl_point = RoadSection.top_left(longest)
-		br_point = RoadSection.bottom_right(longest)
+		name_line = (self._name_line if self._name_line else longest)
+		tl_point = RoadSection.top_left(name_line)
+		br_point = RoadSection.bottom_right(name_line)
 		middle = Point(x=(tl_point.x + br_point.x) // 2,
 					   y=(tl_point.y + br_point.y) // 2)
 		if horiz:
@@ -106,10 +108,59 @@ class Road():
 			chars.append(char)
 		return chars
 
+	def normalize_lines(self, lines):
+		tmp_lines = []
+		for l in lines:
+			p1 = l[0].points[0]
+			p2 = l[-1].points[-1]
+			if self.horizontal:
+				if p1.x > p1.x:
+					tmp_lines.append(list(reversed(l)))
+				else:
+					tmp_lines.append(l)
+			else:
+				if p1.y > p1.y:
+					tmp_lines.append(list(reversed(l)))
+				else:
+					tmp_lines.append(l)
+		return tmp_lines
+
 	def _shift_lines(self):
-		pass
+		if len(self.lines) == 1 or len(self.lines) > 4:
+			return
+		lines = [l for l in self.lines if (len(l) > 3 and any_two_or_three(l))]
+		if len(lines) not in (2, 4):
+			return
+
+		def x_or_y(line):
+			if self.horizontal:
+				return line[0].points[0].x
+			else:
+				return line[0].points[0].y
+
+		lines = self.normalize_lines(lines)
+		lines = sorted(lines, key=x_or_y)
+		while lines:
+			self._shift_line_pair(*lines[:2])
+			lines = lines[2:]
+
+	def _shift_line_pair(self, la, lb):
+		if self.horizontal:
+			ya = [la[0].points[0].y, la[-1].points[-1].y]
+			yb = [lb[0].points[0].y, lb[-1].points[-1].y]
+			if ya > yb:
+				la, lb = lb, la
+			shift_lines_vertical(la, lb)
+		else:
+			xa = [la[0].points[0].x, la[-1].points[-1].x]
+			xb = [lb[0].points[0].x, lb[-1].points[-1].x]
+			if xa > xb:
+				la, lb = lb, la
+			shift_lines_horizontal(la, lb)
+		self._name_line = max(self._name_line, lb, key=lambda l: len(l))
 
 	def display_lines(self):
+		self._shift_lines()
 		dlines = []
 		for ln in self.lines:
 			points = reduce(lambda x,y: x + y[1:], [s.points for s in ln])

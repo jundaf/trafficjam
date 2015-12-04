@@ -51,6 +51,22 @@ def _find_prev(current, sections):
 			return sections.pop(i)
 	return None
 
+def any_two_or_three(sections):
+	two_or_three = lambda s: s.direction == 2 or s.direction == 3
+	return any([two_or_three(s) for s in sections])
+
+def shift_lines_vertical(la, lb):
+	for s in la:
+		s.points = [Point(p.x, p.y - 5) for p in s.points]
+	for s in lb:
+		s.points = [Point(p.x, p.y + 5) for p in s.points]
+
+def shift_lines_horizontal(la, lb):
+	for s in la:
+		s.points = [Point(p.x - 5, p.y) for p in s.points]
+	for s in lb:
+		s.points = [Point(p.x + 5, p.y) for p in s.points]
+
 ####
 
 def _Lonlat2Pixel(lonlat, zoom=16):
